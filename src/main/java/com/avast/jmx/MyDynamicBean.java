@@ -85,6 +85,7 @@ public final class MyDynamicBean implements DynamicMBean {
         if (name == null) {
             name = getJMXNameForClass(object.getClass());
         }
+        name = getAndEnlistUniqueName(name);
         try {
             this.name = name;
             this.obj = object;
@@ -344,10 +345,16 @@ public final class MyDynamicBean implements DynamicMBean {
     }
 
     public static String getJMXNameForClass(Class<?> cls) {
+        String packageName = cls.getPackage() == null ? "default" : cls.getPackage().getName();
+        String name = packageName + ":type=" + cls.getSimpleName();
+
+        return name;
+    }
+
+    public static String getAndEnlistUniqueName(String name) {
+
         lock.lock();
         try {
-            String packageName = cls.getPackage() == null ? "default" : cls.getPackage().getName();
-            String name = packageName + ":type=" + cls.getSimpleName();
             AtomicLong get = MyDynamicBean.names.get(name);
             if (get != null) {
                 name += "#" + get.incrementAndGet();
