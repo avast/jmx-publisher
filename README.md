@@ -17,14 +17,13 @@ By the same logic, you can mark method as a @JMXProperty and its result will be 
 Setters and getters can have names - this links them to the field. Field can have names too, if no name is specified, field name is used.
 If there is no name specified for setter/getter, framework tries to automatically resolve what property do these methods belong to - stripping get/is/set prefix and lowercasing first letter. See example below.
 
-Finally, there is MyDynamicBean class that processes annotations and exposes JMX properties.
+Finally, there is the MyDynamicBean class that processes annotations and exposes JMX properties.
 Just like this:
 
     ClassWithJMXProperties obj = new ClassWithJMXProperties();
     ...
     ...
-    MyDynamicBean mdb = new MyDynamicBean(obj);
-    mdb.register();
+    MyDynamicBean.exposeAndRegisterSilently(obj);//expose JMX
 
 
 Larger Example:
@@ -70,6 +69,7 @@ Larger Example:
         }
 
         public void testMonitorable() throws Exception {
+            //can be called like that, or simplier: MyDynamicBean.exposeAndRegisterSilently(this);
             MyDynamicBean mdb = new MyDynamicBean(this);
             mdb.register();
             Thread.sleep(Long.MAX_VALUE);

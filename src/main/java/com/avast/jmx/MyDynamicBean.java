@@ -85,7 +85,10 @@ public final class MyDynamicBean implements DynamicMBean {
         if (name == null) {
             name = getJMXNameForClass(object.getClass());
         }
+
+        //add counter, if necessary
         name = getAndEnlistUniqueName(name);
+
         try {
             this.name = name;
             this.obj = object;
