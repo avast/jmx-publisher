@@ -31,6 +31,12 @@ public final class MyDynamicBean implements DynamicMBean {
     private final Map<String, Property> props = new ConcurrentHashMap<String, Property>();
     private static final Map<String, AtomicLong> names = new ConcurrentHashMap<String, AtomicLong>();
     private static final ReentrantLock lock = new ReentrantLock();
+    private MBeanServer mBeanServer = defaultMBeanServer;
+    private static MBeanServer defaultMBeanServer = ManagementFactory.getPlatformMBeanServer();
+
+    public static void setDefaultMBeanServer(MBeanServer mBeanServer) {
+        defaultMBeanServer = mBeanServer;
+    }
 
     /**
      * Exposes and register MBean (one-line method)
@@ -126,6 +132,11 @@ public final class MyDynamicBean implements DynamicMBean {
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public MyDynamicBean registerWith(MBeanServer mBeanServer) {
+        this.mBeanServer = mBeanServer;
+        return this;
     }
 
     private static MBeanAttributeInfo[] propertiesToAttributeInfo(List<Property> properties) {
@@ -607,15 +618,13 @@ public final class MyDynamicBean implements DynamicMBean {
 
     @SuppressWarnings("unused")
     public void unregister() throws InstanceNotFoundException, MBeanRegistrationException {
-        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-        mbs.unregisterMBean(objName);
+        mBeanServer.unregisterMBean(objName);
     }
 
     public void register() {
         try {
-            MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
             this.objName = new ObjectName(name);
-            mbs.registerMBean(this, objName);
+            mBeanServer.registerMBean(this, objName);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
