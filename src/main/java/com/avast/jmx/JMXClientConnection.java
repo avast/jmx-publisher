@@ -1,5 +1,8 @@
 package com.avast.jmx;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.management.*;
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
@@ -16,6 +19,8 @@ import java.util.Set;
  */
 @SuppressWarnings("unused")
 public class JMXClientConnection {
+    protected final Logger LOG = LoggerFactory.getLogger(getClass());
+
     public static final String JAVA_DOUBLE_TYPE = Double.TYPE.getName();
     public static final String JAVA_DOUBLE = Double.class.getName();
     public static final String JAVA_INTEGER_TYPE = Integer.TYPE.getName();

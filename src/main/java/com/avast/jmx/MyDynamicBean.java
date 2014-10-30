@@ -24,6 +24,7 @@ public final class MyDynamicBean implements DynamicMBean {
     public static final String IS_PREFIX = "is";
     public static final String GET_PREFIX = "get";
     public static final String SET_PREFIX = "set";
+    public static final String NAME_COUNTER_SEPARATOR = "-";
     private final String name;
     private final Object obj;
     private final MBeanInfo info;
@@ -344,11 +345,11 @@ public final class MyDynamicBean implements DynamicMBean {
 
     private void assignOperations(List<Method> methods) {
         for (Method m : methods) {
-            JMXOperation opAnot = m.getAnnotation(JMXOperation.class);
+            final JMXOperation opAnot = m.getAnnotation(JMXOperation.class);
             Preconditions.checkNotNull(opAnot);
-            String opName = m.getName();
-            Class<?>[] parameterTypes = m.getParameterTypes();
-            String signature = methodParametersToSignature(parameterTypes);
+            final String opName = m.getName();
+            final Class<?>[] parameterTypes = m.getParameterTypes();
+            final String signature = methodParametersToSignature(parameterTypes);
             Map<String, Method> get = ops.get(opName);
             if (get == null) {
                 get = new ConcurrentHashMap<String, Method>();
@@ -359,10 +360,9 @@ public final class MyDynamicBean implements DynamicMBean {
     }
 
     public static String getJMXNameForClass(Class<?> cls) {
-        String packageName = cls.getPackage() == null ? "default" : cls.getPackage().getName();
-        String name = packageName + ":type=" + cls.getSimpleName();
+        final String packageName = cls.getPackage() == null ? "default" : cls.getPackage().getName();
 
-        return name;
+        return packageName + ":type=" + cls.getSimpleName();
     }
 
     public static String getAndEnlistUniqueName(String name) {
@@ -371,7 +371,7 @@ public final class MyDynamicBean implements DynamicMBean {
         try {
             AtomicLong get = MyDynamicBean.names.get(name);
             if (get != null) {
-                name += "#" + get.incrementAndGet();
+                name += NAME_COUNTER_SEPARATOR + get.incrementAndGet();
             }
             else {
                 get = new AtomicLong(0);
