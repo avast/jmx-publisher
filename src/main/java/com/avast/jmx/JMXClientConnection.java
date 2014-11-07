@@ -7,6 +7,7 @@ import javax.management.*;
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
+import java.io.Closeable;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.Set;
@@ -18,7 +19,7 @@ import java.util.Set;
  * @version 0.1
  */
 @SuppressWarnings("unused")
-public class JMXClientConnection {
+public class JMXClientConnection implements Closeable {
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
     public static final String JAVA_DOUBLE_TYPE = Double.TYPE.getName();
@@ -38,7 +39,15 @@ public class JMXClientConnection {
 
     public JMXClientConnection(String hostAndPort) throws IOException, MalformedURLException {
         JMXServiceURL url = new JMXServiceURL("service:jmx:rmi:///jndi/rmi://" + hostAndPort + "/jmxrmi");
-        conn = (connector = JMXConnectorFactory.connect(url)).getMBeanServerConnection();
+        try {
+            conn = (connector = JMXConnectorFactory.connect(url)).getMBeanServerConnection();
+        } catch (IOException e) {
+            LOG.debug("Error while connecting to " + hostAndPort);
+            if (connector != null) {
+                connector.close();
+            }
+            throw e;
+        }
     }
 
     public JMXClientConnection(String host, int port) throws IOException {

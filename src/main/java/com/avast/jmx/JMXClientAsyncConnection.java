@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.management.MBeanInfo;
 import javax.management.ObjectName;
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -20,7 +21,7 @@ import java.util.concurrent.Executors;
  * @author Jenda Kolena, kolena@avast.com
  */
 @SuppressWarnings("unused")
-public class JMXClientAsyncConnection {
+public class JMXClientAsyncConnection implements Closeable {
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
     protected final JMXClientConnection clientConnection;
@@ -32,10 +33,17 @@ public class JMXClientAsyncConnection {
                     LOG.error("Uncaught exception in SMS processing (thread " + t.getName() + ")", e);
                 }
             })
-            .setNameFormat("jmxclientasyncconnection-" + System.currentTimeMillis() + "-%d").build()));
+            .setNameFormat("jmxclientasyncconnection-" + System.currentTimeMillis() + "-%d").setDaemon(true).build()));
 
     public JMXClientAsyncConnection(String hostAndPort) throws IOException {
-        clientConnection = new JMXClientConnection(hostAndPort);
+        try {
+            clientConnection = new JMXClientConnection(hostAndPort);
+        } catch (IOException e) {
+            if (executor != null) {
+                executor.shutdownNow();
+            }
+            throw e;
+        }
     }
 
     public JMXClientAsyncConnection(String host, int port) throws IOException {
@@ -122,5 +130,10 @@ public class JMXClientAsyncConnection {
                 return clientConnection.getBeanInfo(object);
             }
         });
+    }
+
+    public void close() throws IOException {
+        executor.shutdownNow();
+        clientConnection.close();
     }
 }
