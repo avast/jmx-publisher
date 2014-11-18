@@ -8,7 +8,7 @@
     </parent>
 
     <artifactId>jmx-publisher</artifactId>
-    <version>1.1-SNAPSHOT</version>
+    <version>1.1.0</version>
     <packaging>jar</packaging>
 
     <name>JMX Publisher</name>
@@ -44,7 +44,7 @@
         <connection>scm:git:git@github.com:avast/jmx-publisher.git</connection>
         <developerConnection>scm:git:git@github.com:avast/jmx-publisher.git</developerConnection>
         <url>https://github.com/avast/jmx-publisher</url>
-        <tag>1.1-SNAPSHOT</tag>
+        <tag>jmx-publisher_2.9-1.1.0-1</tag>
     </scm>
 
     <dependencies>
