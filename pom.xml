@@ -44,7 +44,7 @@
         <connection>scm:git:git@github.com:avast/jmx-publisher.git</connection>
         <developerConnection>scm:git:git@github.com:avast/jmx-publisher.git</developerConnection>
         <url>https://github.com/avast/jmx-publisher</url>
-        <tag>HEAD</tag>
+        <tag>1.1-SNAPSHOT</tag>
     </scm>
 
     <dependencies>
