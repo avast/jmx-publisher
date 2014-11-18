@@ -31,6 +31,15 @@
         </developer>
     </developers>
 
+
+    <properties>
+        <gpg.keyname>FF4DDEC0</gpg.keyname>
+
+        <source.encoding>UTF-8</source.encoding>
+        <source.java.version>1.6</source.java.version>
+        <build.java.version>1.6</build.java.version>
+    </properties>
+
     <scm>
         <connection>scm:git:git@github.com:avast/jmx-publisher.git</connection>
         <developerConnection>scm:git:git@github.com:avast/jmx-publisher.git</developerConnection>
