@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.avast.jmx;
 
 import com.google.common.base.Preconditions;
@@ -13,10 +9,10 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
- * @author Tomas Rehak <rehak@avast.com>
+ * @author Jan Kolena - kolena@avast.com (originally: Tomas Rehak)
  */
+@SuppressWarnings("unused")
 public class Property {
-
     private static final Logger LOGGER = LoggerFactory.getLogger(Property.class);
     private Field field;
     private String name;
@@ -29,8 +25,9 @@ public class Property {
     private Object setterTarget;
     private Object getterTarget;
     private String type;
+    private Class<?> originalClass;
 
-    public Property(Object instance, Field f, String name, String desc, boolean readable, boolean setable, Method getter, Method setter) {
+    public Property(Object instance, Class<?> originalClass, Field f, String name, String desc, boolean readable, boolean setable, Method getter, Method setter) {
         this.instance = instance;
         this.getter = getter;
         this.setter = setter;
@@ -41,6 +38,7 @@ public class Property {
         this.field = f;
         this.getterTarget = instance;
         this.setterTarget = instance;
+        this.originalClass = originalClass;
     }
 
     public void setType(String type) {
@@ -55,6 +53,7 @@ public class Property {
         Preconditions.checkArgument(readable);
         Preconditions.checkNotNull(getter);
         Preconditions.checkNotNull(getterTarget);
+        if (!getter.isAccessible()) getter.setAccessible(true);
         return getter.invoke(getterTarget);
     }
 
@@ -142,7 +141,16 @@ public class Property {
         Preconditions.checkArgument(setable);
         Preconditions.checkNotNull(setter);
         Preconditions.checkNotNull(setterTarget);
+        if (!setter.isAccessible()) setter.setAccessible(true);
         setter.invoke(setterTarget, val);
+    }
+
+    public Class<?> getOriginalClass() {
+        return originalClass;
+    }
+
+    public void setOriginalClass(Class<?> originalClass) {
+        this.originalClass = originalClass;
     }
 
     @Override
