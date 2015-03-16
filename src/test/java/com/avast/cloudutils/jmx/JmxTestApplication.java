@@ -3,6 +3,7 @@ package com.avast.cloudutils.jmx;
 import com.avast.jmx.JMXProperty;
 import com.avast.jmx.MyDynamicBean;
 
+import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -43,5 +44,11 @@ public class JmxTestApplication {
 
     public JmxTestApplication() {
         MyDynamicBean.exposeAndRegisterSilently(this);
+    }
+
+    public static void main(String[] args) {
+        new JmxTestApplication();
+        new Scanner(System.in).nextLine();
+
     }
 }

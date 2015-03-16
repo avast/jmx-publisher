@@ -36,8 +36,8 @@
         <gpg.keyname>FF4DDEC0</gpg.keyname>
 
         <source.encoding>UTF-8</source.encoding>
-        <source.java.version>1.6</source.java.version>
-        <build.java.version>1.6</build.java.version>
+        <source.java.version>1.7</source.java.version>
+        <build.java.version>1.7</build.java.version>
     </properties>
 
     <scm>

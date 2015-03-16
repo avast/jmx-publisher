@@ -12,6 +12,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -29,9 +30,9 @@ public final class MyDynamicBean implements DynamicMBean {
     private final String name;
     private final Object obj;
     private final MBeanInfo info;
-    private final Map<String, Map<String, Method>> ops = new ConcurrentHashMap<String, Map<String, Method>>();
-    private final Map<String, Property> props = new ConcurrentHashMap<String, Property>();
-    private static final Map<String, AtomicLong> names = new ConcurrentHashMap<String, AtomicLong>();
+    private final Map<String, Map<String, Method>> ops = new ConcurrentHashMap<>();
+    private final Map<String, Property> props = new ConcurrentHashMap<>();
+    private static final Map<String, AtomicLong> names = new ConcurrentHashMap<>();
     private static final ReentrantLock lock = new ReentrantLock();
     private MBeanServer mBeanServer = defaultMBeanServer;
     private static MBeanServer defaultMBeanServer = ManagementFactory.getPlatformMBeanServer();
@@ -191,10 +192,13 @@ public final class MyDynamicBean implements DynamicMBean {
                     setter = set.getClass().getMethod("set", Object.class);
                     p.setSetterTarget(set);
 
-                    final String pType = p.getType();
-                    if (pType.substring(pType.lastIndexOf(".") + 1).startsWith("Atomic")) {
-                        p.setType(pType.replace("java.util.concurrent.atomic.Atomic", "java.lang."));
-                    }
+                    p.setType(getPlainType(p.getType()));
+
+//                    final String pType = p.getType();
+//                    if (pType.substring(pType.lastIndexOf(".") + 1).startsWith("Atomic")) {
+////                        p.setType(pType.replace("java.util.concurrent.atomic.Atomic", "java.lang."));
+//                        p.setType(getPlainType(pType));
+//                    }
 
                 }
             } else {
@@ -205,11 +209,34 @@ public final class MyDynamicBean implements DynamicMBean {
         return properties;
     }
 
+    private static String getPlainType(final String originalType) {
+        final int sep = originalType.lastIndexOf(".") + 1;
+
+        String type = originalType.substring(sep);
+
+        if (type.startsWith("Atomic")) {
+            final int length = "java.util.concurrent.atomic.Atomic".length();
+
+            type = originalType.substring(length);
+        }
+
+        type = type.toLowerCase();
+
+        switch (type) {
+            case "integer":
+                return "int";
+            case "string":
+                return String.class.getName();
+            default:
+                return type;
+        }
+    }
+
     public static List<Property> getProperties(Object instance, List<Field> fields, List<Method> gets, List<Method> sets, List<Method> propertyMethods) {
-        final List<Property> list = new ArrayList<Property>();
-        final Map<String, Field> fm = new HashMap<String, Field>();
-        final Map<String, Method> getters = new HashMap<String, Method>();
-        final Map<String, Method> setters = new HashMap<String, Method>();
+        final List<Property> list = new ArrayList<>();
+        final Map<String, Field> fm = new HashMap<>();
+        final Map<String, Method> getters = new HashMap<>();
+        final Map<String, Method> setters = new HashMap<>();
         // map fields
         for (Field f : fields) {
             final JMXProperty an = f.getAnnotation(JMXProperty.class);
@@ -293,7 +320,7 @@ public final class MyDynamicBean implements DynamicMBean {
         // lets validate that there are no orphaned setters / getters
         final Set<String> settersNames = setters.keySet();
         final Set<String> gettersNames = getters.keySet();
-        final Set<String> propNames = new HashSet<String>();
+        final Set<String> propNames = new HashSet<>();
         for (Property prop : list) {
             final String propName = prop.getName();
             propNames.add(propName);
@@ -348,7 +375,7 @@ public final class MyDynamicBean implements DynamicMBean {
             final String signature = methodParametersToSignature(parameterTypes);
             Map<String, Method> get = ops.get(opName);
             if (get == null) {
-                get = new ConcurrentHashMap<String, Method>();
+                get = new ConcurrentHashMap<>();
                 ops.put(opName, get);
             }
             get.put(signature, m);
@@ -485,7 +512,7 @@ public final class MyDynamicBean implements DynamicMBean {
 
     private static MBeanOperationInfo[] createOperationsInfo(List<Method> operations) {
         Preconditions.checkNotNull(operations);
-        final List<MBeanOperationInfo> list = new ArrayList<MBeanOperationInfo>();
+        final List<MBeanOperationInfo> list = new ArrayList<>();
         for (Method m : operations) {
             final JMXOperation anot = m.getAnnotation(JMXOperation.class);
             Preconditions.checkNotNull(anot);
@@ -517,7 +544,7 @@ public final class MyDynamicBean implements DynamicMBean {
     }
 
     private static List<Method> getAnnotatedMethods(Class<?> objectClass, Class annotationClass) {
-        final List<Method> list = new ArrayList<Method>();
+        final List<Method> list = new ArrayList<>();
         Method[] methods;
 
         while (objectClass != null) {
@@ -543,7 +570,7 @@ public final class MyDynamicBean implements DynamicMBean {
     }
 
     public static List<Field> getAnnotatedFields(Class<?> toMonitor, Class<? extends Annotation> annotationClass) {
-        final List<Field> fields = new ArrayList<Field>();
+        final List<Field> fields = new ArrayList<>();
         Class<?> cls = toMonitor;
         while (cls != null) {
             final Field[] declaredFields = cls.getDeclaredFields();
@@ -587,5 +614,25 @@ public final class MyDynamicBean implements DynamicMBean {
             cl = cl.getSuperclass();
         }
         return false;
+    }
+
+
+}
+
+class Main {
+    @JMXProperty(setable = true)
+    private final AtomicBoolean testBoolean = new AtomicBoolean(false);
+
+    @JMXProperty(setable = true)
+    private final boolean testBooleanPlain = false;
+
+    public Main() {
+        MyDynamicBean.exposeAndRegisterSilently(this);
+    }
+
+    public static void main(String[] args) throws InterruptedException {
+        new Main();
+        new Scanner(System.in).nextLine();
+
     }
 }
