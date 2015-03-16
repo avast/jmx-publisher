@@ -5,7 +5,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
- * @author Jan Kolena (originally: Tomas Rehak <rehak@avast.com>)
+ * @author Jan Kolena (originally: Tomas Rehak)
  */
 public class Setter {
     private final Object obj;
@@ -21,11 +21,10 @@ public class Setter {
     }
 
     public void set(Object val) throws IllegalArgumentException, InvocationTargetException {
-        Class<?> type = f.getType();
+        final Class<?> type = f.getType();
         if (type.getSimpleName().startsWith("Atomic")) {
             setAtomic(val);
-        }
-        else {
+        } else {
             try {
                 f.set(obj, JmxHelper.convertValue(val.toString(), type));
             } catch (IllegalAccessException e) {
@@ -35,14 +34,12 @@ public class Setter {
     }
 
     protected void setAtomic(Object val) throws InvocationTargetException {
-        Class cl = JmxHelper.getBasicTypeForAtomic(f);
+        final Class cl = JmxHelper.getBasicTypeForAtomic(f);
 
         try {
-            Method method = f.getType().getMethod("set", cl);
+            final Method method = f.getType().getMethod("set", cl);
             method.invoke(f.get(obj), JmxHelper.convertValue(val.toString(), cl));
-        } catch (NoSuchMethodException e) {
-            throw new InvocationTargetException(e);
-        } catch (IllegalAccessException e) {
+        } catch (NoSuchMethodException | IllegalAccessException e) {
             throw new InvocationTargetException(e);
         }
     }

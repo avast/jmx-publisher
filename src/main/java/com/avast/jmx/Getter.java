@@ -6,7 +6,7 @@ import java.lang.reflect.Method;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * @author Jan Kolena (originally: Tomas Rehak <rehak@avast.com>)
+ * @author Jan Kolena (originally: Tomas Rehak)
  */
 public class Getter {
     private final Object obj;
