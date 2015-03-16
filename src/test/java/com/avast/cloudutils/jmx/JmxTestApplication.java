@@ -7,6 +7,7 @@ import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Created <b>18.11.13</b><br>
@@ -41,6 +42,8 @@ public class JmxTestApplication {
     public AtomicBoolean setableAtomicBoolean = new AtomicBoolean(true);
     @JMXProperty(setable = true)
     public AtomicLong setableAtomicLong = new AtomicLong(0);
+
+    public AtomicReference<String> atomicString = new AtomicReference<>("helloWorld");
 
     public JmxTestApplication() {
         MyDynamicBean.exposeAndRegisterSilently(this);

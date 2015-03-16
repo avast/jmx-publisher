@@ -74,17 +74,15 @@ abstract class JmxHelper {//package visibility
 
         String cl = f.getType().getSimpleName().replaceAll("Atomic", "").toLowerCase();
 
-        if (cl.equals("boolean")) {
-            return Boolean.TYPE;
-        }
-        else if (cl.equals("integer")) {
-            return Integer.TYPE;
-        }
-        else if (cl.equals("long")) {
-            return Long.TYPE;
-        }
-        else {
-            throw new IllegalArgumentException("Unsupported class: " + f.getType());
+        switch (cl) {
+            case "boolean":
+                return Boolean.TYPE;
+            case "integer":
+                return Integer.TYPE;
+            case "long":
+                return Long.TYPE;
+            default:
+                throw new IllegalArgumentException("Unsupported class: " + f.getType());
         }
     }
 }

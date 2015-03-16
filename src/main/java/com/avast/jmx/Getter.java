@@ -3,6 +3,7 @@ package com.avast.jmx;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author Jan Kolena (originally: Tomas Rehak <rehak@avast.com>)
@@ -21,11 +22,10 @@ public class Getter {
     }
 
     public Object get() throws IllegalArgumentException, InvocationTargetException {
-        Class<?> type = f.getType();
+        final Class<?> type = f.getType();
         if (type.getSimpleName().startsWith("Atomic")) {
             return getAtomic();
-        }
-        else {
+        } else {
             try {
                 return f.get(obj);
             } catch (IllegalAccessException e) {
@@ -36,11 +36,14 @@ public class Getter {
 
     protected Object getAtomic() throws InvocationTargetException {
         try {
-            Method method = f.getType().getMethod("get");
+            if (f.getType().equals(AtomicReference.class)) {
+                final Method method = f.getType().getMethod("toString");
+                return method.invoke(f.get(obj));
+            }
+
+            final Method method = f.getType().getMethod("get");
             return method.invoke(f.get(obj));
-        } catch (NoSuchMethodException e) {
-            throw new InvocationTargetException(e);
-        } catch (IllegalAccessException e) {
+        } catch (NoSuchMethodException | IllegalAccessException e) {
             throw new InvocationTargetException(e);
         }
     }

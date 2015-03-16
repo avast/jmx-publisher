@@ -74,5 +74,8 @@ public class JmxPropertyTest extends TestCase {
 
         connection.setAttribute(objectName, "setableAtomicBoolean", valueBool);
         assertEquals(valueBool, connection.getAttribute(objectName, "setableAtomicBoolean"));
+
+        //not settable
+        assertEquals("helloWorld", connection.getAttribute(objectName, "atomicString"));
     }
 }

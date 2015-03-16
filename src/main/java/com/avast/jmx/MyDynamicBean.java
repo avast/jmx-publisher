@@ -193,13 +193,6 @@ public final class MyDynamicBean implements DynamicMBean {
                     p.setSetterTarget(set);
 
                     p.setType(getPlainType(p.getType()));
-
-//                    final String pType = p.getType();
-//                    if (pType.substring(pType.lastIndexOf(".") + 1).startsWith("Atomic")) {
-////                        p.setType(pType.replace("java.util.concurrent.atomic.Atomic", "java.lang."));
-//                        p.setType(getPlainType(pType));
-//                    }
-
                 }
             } else {
                 setter = null;
@@ -225,6 +218,7 @@ public final class MyDynamicBean implements DynamicMBean {
         switch (type) {
             case "integer":
                 return "int";
+            case "reference":
             case "string":
                 return String.class.getName();
             default:
@@ -617,22 +611,4 @@ public final class MyDynamicBean implements DynamicMBean {
     }
 
 
-}
-
-class Main {
-    @JMXProperty(setable = true)
-    private final AtomicBoolean testBoolean = new AtomicBoolean(false);
-
-    @JMXProperty(setable = true)
-    private final boolean testBooleanPlain = false;
-
-    public Main() {
-        MyDynamicBean.exposeAndRegisterSilently(this);
-    }
-
-    public static void main(String[] args) throws InterruptedException {
-        new Main();
-        new Scanner(System.in).nextLine();
-
-    }
 }
