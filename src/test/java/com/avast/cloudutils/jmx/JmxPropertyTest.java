@@ -1,6 +1,6 @@
 package com.avast.cloudutils.jmx;
 
-import com.avast.jmx.JMXClientConnection;
+import com.avast.client.jmx.JMXClientConnection;
 import junit.framework.TestCase;
 import org.junit.Test;
 
