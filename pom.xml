@@ -49,12 +49,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>18.0</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>1.7.7</version>
@@ -62,8 +56,8 @@
 
         <dependency>
             <groupId>com.avast.client</groupId>
-            <artifactId>jmx-client</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <artifactId>client-jmx</artifactId>
+            <version>1.0.0</version>
             <scope>test</scope>
         </dependency>
 
