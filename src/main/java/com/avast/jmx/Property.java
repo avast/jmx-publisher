@@ -1,6 +1,5 @@
 package com.avast.jmx;
 
-import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,9 +49,9 @@ public class Property {
     }
 
     public Object getValue() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-        Preconditions.checkArgument(readable);
-        Preconditions.checkNotNull(getter);
-        Preconditions.checkNotNull(getterTarget);
+        MyPreconditions.checkArgument(readable);
+        MyPreconditions.checkNotNull(getter);
+        MyPreconditions.checkNotNull(getterTarget);
         if (!getter.isAccessible()) getter.setAccessible(true);
         return getter.invoke(getterTarget);
     }
@@ -138,9 +137,9 @@ public class Property {
     }
 
     public void setValue(Object val) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-        Preconditions.checkArgument(setable);
-        Preconditions.checkNotNull(setter);
-        Preconditions.checkNotNull(setterTarget);
+        MyPreconditions.checkArgument(setable);
+        MyPreconditions.checkNotNull(setter);
+        MyPreconditions.checkNotNull(setterTarget);
         if (!setter.isAccessible()) setter.setAccessible(true);
         setter.invoke(setterTarget, val);
     }

@@ -1,9 +1,9 @@
 package com.avast.jmx;
 
-import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import javax.management.*;
 import java.lang.annotation.Annotation;
 import java.lang.management.ManagementFactory;
@@ -12,7 +12,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -87,7 +86,7 @@ public final class MyDynamicBean implements DynamicMBean {
     }
 
     public MyDynamicBean(String name, String description, Object object) {
-        Preconditions.checkNotNull(object);
+        MyPreconditions.checkNotNull(object);
         if (description == null) {
             description = "Default description";
         }
@@ -152,7 +151,7 @@ public final class MyDynamicBean implements DynamicMBean {
     }
 
     public static List<Property> generateMissingGetters(List<Property> properties) throws NoSuchMethodException {
-        Preconditions.checkNotNull(properties);
+        MyPreconditions.checkNotNull(properties);
         for (Property p : properties) {
             boolean readable = p.isReadable();
             boolean setable = p.isSetable();
@@ -234,7 +233,7 @@ public final class MyDynamicBean implements DynamicMBean {
         // map fields
         for (Field f : fields) {
             final JMXProperty an = f.getAnnotation(JMXProperty.class);
-            Preconditions.checkNotNull(an);
+            MyPreconditions.checkNotNull(an);
             String name;
             if (an.name() == null || an.name().trim().equals("")) {
                 name = f.getName();
@@ -249,7 +248,7 @@ public final class MyDynamicBean implements DynamicMBean {
         // map getters
         for (Method m : gets) {
             final JMXPropertyGetter an = m.getAnnotation(JMXPropertyGetter.class);
-            Preconditions.checkNotNull(an);
+            MyPreconditions.checkNotNull(an);
             String name;
             if (an.name() == null || an.name().trim().equals("")) {
                 name = m.getName();
@@ -265,7 +264,7 @@ public final class MyDynamicBean implements DynamicMBean {
         // map setters
         for (Method m : sets) {
             final JMXPropertySetter an = m.getAnnotation(JMXPropertySetter.class);
-            Preconditions.checkNotNull(an);
+            MyPreconditions.checkNotNull(an);
             String name;
             if (an.name() == null || an.name().trim().equals("")) {
                 name = m.getName();
@@ -291,7 +290,7 @@ public final class MyDynamicBean implements DynamicMBean {
         // assign property methods
         for (Method m : propertyMethods) {
             final JMXProperty an = m.getAnnotation(JMXProperty.class);
-            Preconditions.checkNotNull(an);
+            MyPreconditions.checkNotNull(an);
             String name;
             if (an.name() == null || an.name().trim().equals("")) {
                 name = m.getName();
@@ -334,13 +333,13 @@ public final class MyDynamicBean implements DynamicMBean {
         return list;
     }
 
-    public static String stripGetterPrefix(String name) {
-        Preconditions.checkNotNull(name);
+    public static String stripGetterPrefix(final String name) {
+        MyPreconditions.checkNotNull(name);
         return stripMethodPrefix(name, new String[]{IS_PREFIX, GET_PREFIX});
     }
 
-    public static String stripMethodPrefix(String name, String[] prefixes) {
-        Preconditions.checkNotNull(name);
+    public static String stripMethodPrefix(final String name, final String[] prefixes) {
+        MyPreconditions.checkNotNull(name);
         String res = name;
         for (String prefix : prefixes) {
             if (name.startsWith(prefix) && name.length() > prefix.length()) {
@@ -355,15 +354,15 @@ public final class MyDynamicBean implements DynamicMBean {
         return res;
     }
 
-    public static String stripSetterPrefix(String name) {
-        Preconditions.checkNotNull(name);
+    public static String stripSetterPrefix(final String name) {
+        MyPreconditions.checkNotNull(name);
         return stripMethodPrefix(name, new String[]{SET_PREFIX});
     }
 
-    private void assignOperations(List<Method> methods) {
+    private void assignOperations(final List<Method> methods) {
         for (Method m : methods) {
             final JMXOperation opAnot = m.getAnnotation(JMXOperation.class);
-            Preconditions.checkNotNull(opAnot);
+            MyPreconditions.checkNotNull(opAnot);
             final String opName = m.getName();
             final Class<?>[] parameterTypes = m.getParameterTypes();
             final String signature = methodParametersToSignature(parameterTypes);
@@ -376,7 +375,7 @@ public final class MyDynamicBean implements DynamicMBean {
         }
     }
 
-    public static String getJMXNameForClass(Class<?> cls) {
+    public static String getJMXNameForClass(final Class<?> cls) {
         final String packageName = cls.getPackage() == null ? "default" : cls.getPackage().getName();
 
         return packageName + ":type=" + cls.getSimpleName();
@@ -399,8 +398,8 @@ public final class MyDynamicBean implements DynamicMBean {
     }
 
     @Override
-    public Object getAttribute(String attribute) throws AttributeNotFoundException, MBeanException, ReflectionException {
-        Preconditions.checkNotNull(attribute);
+    public Object getAttribute(final String attribute) throws AttributeNotFoundException, MBeanException, ReflectionException {
+        MyPreconditions.checkNotNull(attribute);
         final Property prop = props.get(attribute);
         if (prop != null) {
             try {
@@ -414,8 +413,8 @@ public final class MyDynamicBean implements DynamicMBean {
     }
 
     @Override
-    public void setAttribute(Attribute attribute) throws AttributeNotFoundException, InvalidAttributeValueException, MBeanException, ReflectionException {
-        Preconditions.checkNotNull(attribute);
+    public void setAttribute(final Attribute attribute) throws AttributeNotFoundException, InvalidAttributeValueException, MBeanException, ReflectionException {
+        MyPreconditions.checkNotNull(attribute);
         final String name = attribute.getName();
         final Object val = attribute.getValue();
         final Property prop = props.get(name);
@@ -432,7 +431,7 @@ public final class MyDynamicBean implements DynamicMBean {
     }
 
     @Override
-    public AttributeList getAttributes(String[] attributes) {
+    public AttributeList getAttributes(final String[] attributes) {
         LOGGER.debug("Get attributes " + Arrays.asList(attributes));
         final AttributeList list = new AttributeList();
         for (String attr : attributes) {
@@ -452,12 +451,12 @@ public final class MyDynamicBean implements DynamicMBean {
     }
 
     @Override
-    public AttributeList setAttributes(AttributeList attributes) {
-        Preconditions.checkNotNull(attributes);
+    public AttributeList setAttributes(final AttributeList attributes) {
+        MyPreconditions.checkNotNull(attributes);
         final String[] attribs = new String[attributes.size()];
         for (int i = 0; i < attributes.size(); i++) {
             final Attribute atr = (Attribute) attributes.get(i);
-            Preconditions.checkNotNull(atr);
+            MyPreconditions.checkNotNull(atr);
             final Property prop = props.get(atr.getName());
             try {
                 prop.setValue(atr.getValue());
@@ -471,9 +470,8 @@ public final class MyDynamicBean implements DynamicMBean {
     }
 
     @Override
-    public Object invoke(String actionName, Object[] params, String[] signature) throws MBeanException, ReflectionException {
+    public Object invoke(final String actionName, final Object[] params, final String[] signature) throws MBeanException, ReflectionException {
         LOGGER.debug("Invoking " + actionName + ", params " + Arrays.toString(params) + ", signature: " + Arrays.toString(signature));
-//        System.out.println("Invoking " + actionName + ", params " + Arrays.toString(params) + ", signature: " + Arrays.toString(signature));
         final Map<String, Method> get = ops.get(actionName);
         if (get != null) {
             String sig = "";
@@ -504,19 +502,19 @@ public final class MyDynamicBean implements DynamicMBean {
         return info;
     }
 
-    private static MBeanOperationInfo[] createOperationsInfo(List<Method> operations) {
-        Preconditions.checkNotNull(operations);
+    private static MBeanOperationInfo[] createOperationsInfo(final List<Method> operations) {
+        MyPreconditions.checkNotNull(operations);
         final List<MBeanOperationInfo> list = new ArrayList<>();
         for (Method m : operations) {
             final JMXOperation anot = m.getAnnotation(JMXOperation.class);
-            Preconditions.checkNotNull(anot);
+            MyPreconditions.checkNotNull(anot);
             final MBeanOperationInfo inf = new MBeanOperationInfo(anot.description(), m);
             list.add(inf);
         }
         return list.toArray(new MBeanOperationInfo[list.size()]);
     }
 
-    private static String methodParametersToSignature(Class<?>[] parameterTypes) {
+    private static String methodParametersToSignature(final Class<?>[] parameterTypes) {
         String signature = "";
         for (int i = 0; i < parameterTypes.length; i++) {
             signature += parameterTypes[i].getName();
@@ -537,7 +535,7 @@ public final class MyDynamicBean implements DynamicMBean {
         return Getter.newGetter(obj, f);
     }
 
-    private static List<Method> getAnnotatedMethods(Class<?> objectClass, Class annotationClass) {
+    private static List<Method> getAnnotatedMethods(Class<?> objectClass, final Class annotationClass) {
         final List<Method> list = new ArrayList<>();
         Method[] methods;
 
@@ -556,14 +554,14 @@ public final class MyDynamicBean implements DynamicMBean {
 
     public static MBeanAttributeInfo propertyToAttribute(Property prop) {
         LOGGER.debug("Processing property " + prop);
-        Preconditions.checkNotNull(prop);
+        MyPreconditions.checkNotNull(prop);
         final boolean readable = prop.isReadable();
         final boolean setable = prop.isSetable();
-        Preconditions.checkArgument(readable || setable, "Property is not setable, nor readable! " + prop);
+        MyPreconditions.checkArgument(readable || setable, "Property is not setable, nor readable! " + prop);
         return new MBeanAttributeInfo(prop.getName(), prop.getType(), prop.getDesc(), prop.isReadable(), prop.isSetable(), false);
     }
 
-    public static List<Field> getAnnotatedFields(Class<?> toMonitor, Class<? extends Annotation> annotationClass) {
+    public static List<Field> getAnnotatedFields(final Class<?> toMonitor, Class<? extends Annotation> annotationClass) {
         final List<Field> fields = new ArrayList<>();
         Class<?> cls = toMonitor;
         while (cls != null) {
@@ -609,6 +607,5 @@ public final class MyDynamicBean implements DynamicMBean {
         }
         return false;
     }
-
-
 }
+
