@@ -8,7 +8,7 @@
     </parent>
 
     <artifactId>jmx-publisher</artifactId>
-    <version>1.2-SNAPSHOT</version>
+    <version>1.3-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>JMX Publisher</name>
