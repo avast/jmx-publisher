@@ -3,9 +3,11 @@ package com.avast.jmx;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.management.openmbean.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Map;
 
 /**
  * @author Jan Kolena - kolena@avast.com (originally: Tomas Rehak)
@@ -25,6 +27,7 @@ public class Property {
     private Object getterTarget;
     private String type;
     private Class<?> originalClass;
+    private boolean compositeDataWrapper = false;
 
     public Property(Object instance, Class<?> originalClass, Field f, String name, String desc, boolean readable, boolean setable, Method getter, Method setter) {
         this.instance = instance;
@@ -38,6 +41,7 @@ public class Property {
         this.getterTarget = instance;
         this.setterTarget = instance;
         this.originalClass = originalClass;
+        openTypeConversionCheck(f);
     }
 
     public void setType(String type) {
@@ -45,7 +49,11 @@ public class Property {
     }
 
     public String getType() {
-        return type;
+        if (compositeDataWrapper) {
+            return CompositeData.class.getName();
+        } else {
+            return type;
+        }
     }
 
     public Object getValue() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
@@ -53,7 +61,7 @@ public class Property {
         MyPreconditions.checkNotNull(getter);
         MyPreconditions.checkNotNull(getterTarget);
         if (!getter.isAccessible()) getter.setAccessible(true);
-        return getter.invoke(getterTarget);
+        return convert(getter.invoke(getterTarget));
     }
 
     public Object getSetterTarget() {
@@ -157,4 +165,86 @@ public class Property {
         return "Property{" + "field=" + field + ", name=" + name + ", desc=" + desc + ", readable=" + readable + ", setable=" + setable + ", getter=" + getter + ", setter=" + setter + ", instance=" + instance + ", setterTarget=" + setterTarget + ", getterTarget=" + getterTarget + ", type=" + type + '}';
     }
 
+
+    private void openTypeConversionCheck(Field field) {
+        Class<?> fieldType = field.getType();
+        if (fieldType.equals(Map.class)) {
+            compositeDataWrapper = true;
+            setable = false; // Really do not want to set CompositeData
+        }
+    }
+
+
+    /**
+     * Method will convert following classes:
+     * <ul>
+     *     <li>{@link Map}</li>
+     * </ul>
+     *
+     * to new {@link CompositeData} representation
+     *
+     * @return original obj or converted obj
+     */
+    private Object convert(Object obj) {
+        if (compositeDataWrapper && (obj instanceof Map)) {
+            return convertMapToCompositeData((Map) obj);
+        }
+        // do not need to convert data || unable to convert data
+        return obj;
+    }
+
+
+
+    /**
+     * Convert {@link Map} to {@link CompositeData} obj
+     *
+     * @param inputMap  map which will be converted to {@link CompositeData}
+     * @return new representation of map in CompositeData obj OR
+     *          input Map if not possible
+     */
+    private Object convertMapToCompositeData(Map inputMap) {
+        int size = inputMap.size();
+        int allocationSize = Math.max(1, size);
+
+        String[] itemNames = new String[allocationSize];
+        String[] itemDescs = new String[allocationSize];
+        OpenType[] itemTypes = new OpenType[allocationSize];
+        String[] itemValues = new String[allocationSize];
+
+        if (size <= 0) {
+            // CompositeData can not be empty; If the map is empty he have to send something
+            itemNames[0] = "null";
+            itemDescs[0] = "empty map";
+            itemValues[0] = "(null)";
+            itemTypes[0] = SimpleType.STRING;
+
+        } else {
+            int i = 0;
+
+            for (Object key : inputMap.keySet()) {
+                String keyValue = key.toString();
+                String value = String.valueOf(inputMap.get(key));
+
+                itemNames[i] = keyValue;
+                itemDescs[i] = keyValue;
+                itemValues[i] = value;
+                itemTypes[i] = SimpleType.STRING;
+                ++i;
+            }
+        }
+
+
+        try {
+            CompositeType compositeType = new CompositeType(name, "CompositeData wrapper-"+desc, itemNames, itemDescs, itemTypes);
+            CompositeDataSupport compositeData = new CompositeDataSupport(compositeType, itemNames, itemValues);
+            return compositeData;
+
+        } catch (OpenDataException e) {
+            LOGGER.error("Unable to convert map to open type!");
+        } catch (Exception e) {
+            LOGGER.error("Unknown problem found. Check with library authors.");
+        }
+
+        return inputMap;
+    }
 }
