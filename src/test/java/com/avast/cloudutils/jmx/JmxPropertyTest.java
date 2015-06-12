@@ -3,10 +3,16 @@ package com.avast.cloudutils.jmx;
 import com.avast.client.jmx.JMXClientConnection;
 import junit.framework.TestCase;
 import org.junit.Test;
+import sun.jvm.hotspot.debugger.win32.coff.COMDATSelectionTypes;
 
 import javax.management.ObjectName;
+import javax.management.openmbean.CompositeData;
 import java.io.IOException;
 import java.util.Random;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Created <b>18.11.13</b><br>
@@ -22,6 +28,7 @@ public class JmxPropertyTest extends TestCase {
 
     The port number can be changed, but it has to be the same as in the connection below.
      */
+
 
     @Test
     public void testReadableAndSetable() throws IOException {
@@ -76,6 +83,53 @@ public class JmxPropertyTest extends TestCase {
         assertEquals(valueBool, connection.getAttribute(objectName, "setableAtomicBoolean"));
 
         //not settable
-        assertEquals("helloWorld", connection.getAttribute(objectName, "atomicString"));
+        try {
+            connection.getAttribute(objectName, "atomicString");
+            assertTrue("Should not be here", false);
+
+        } catch (IOException e) {
+            // ok expecting the exception
+        }
+    }
+
+    @Test
+    public void testMapsField() throws IOException {
+        JmxMapTestApplication testClass = new JmxMapTestApplication();
+        String beanName = "com.avast.cloudutils.jmx:type=" + testClass.getClass().getSimpleName();
+
+        JMXClientConnection connection;
+        try {
+            connection = new JMXClientConnection("localhost:9969");
+        } catch (IOException e) {
+            //ignore, test run with wrong parameters...
+            System.err.println("Cannot connect to the service, maybe wrong parameters?");
+            return;
+        }
+        ObjectName objectName = connection.getObjectName(beanName);
+
+
+        Object obj;
+        CompositeData compositeData;
+
+        obj = connection.getAttribute(objectName, "stringMap");
+        assertTrue(obj instanceof CompositeData);
+
+        compositeData = (CompositeData) obj;
+        assertTrue(compositeData.containsKey("str1"));
+        assertTrue(compositeData.containsKey("str2"));
+
+
+        obj = connection.getAttribute(objectName, "emptyMap");
+        assertTrue(obj instanceof CompositeData);
+        compositeData = (CompositeData) obj;
+        assertTrue((compositeData.containsKey("null")));
+
+        obj = connection.getAttribute(objectName, "integerStringMap");
+        assertTrue(obj instanceof CompositeData);
+        compositeData = (CompositeData) obj;
+        assertTrue(compositeData.containsKey("1"));
+        assertTrue(compositeData.containsKey("2"));
+        assertTrue(compositeData.containsKey("3"));
+
     }
 }
