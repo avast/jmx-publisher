@@ -3,16 +3,11 @@ package com.avast.cloudutils.jmx;
 import com.avast.client.jmx.JMXClientConnection;
 import junit.framework.TestCase;
 import org.junit.Test;
-import sun.jvm.hotspot.debugger.win32.coff.COMDATSelectionTypes;
 
 import javax.management.ObjectName;
 import javax.management.openmbean.CompositeData;
 import java.io.IOException;
 import java.util.Random;
-
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 
 /**
  * Created <b>18.11.13</b><br>

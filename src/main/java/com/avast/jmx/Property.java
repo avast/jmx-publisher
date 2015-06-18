@@ -165,22 +165,20 @@ public class Property {
         return "Property{" + "field=" + field + ", name=" + name + ", desc=" + desc + ", readable=" + readable + ", setable=" + setable + ", getter=" + getter + ", setter=" + setter + ", instance=" + instance + ", setterTarget=" + setterTarget + ", getterTarget=" + getterTarget + ", type=" + type + '}';
     }
 
-
     private void openTypeConversionCheck(Field field) {
-        Class<?> fieldType = field.getType();
+        final Class<?> fieldType = field.getType();
         if (fieldType.equals(Map.class)) {
             compositeDataWrapper = true;
             setable = false; // Really do not want to set CompositeData
         }
     }
 
-
     /**
      * Method will convert following classes:
      * <ul>
-     *     <li>{@link Map}</li>
+     * <li>{@link Map}</li>
      * </ul>
-     *
+     * <p/>
      * to new {@link CompositeData} representation
      *
      * @return original obj or converted obj
@@ -193,58 +191,76 @@ public class Property {
         return obj;
     }
 
-
-
     /**
      * Convert {@link Map} to {@link CompositeData} obj
      *
-     * @param inputMap  map which will be converted to {@link CompositeData}
+     * @param inputMap map which will be converted to {@link CompositeData}
      * @return new representation of map in CompositeData obj OR
-     *          input Map if not possible
+     * input Map if not possible
      */
     private Object convertMapToCompositeData(Map inputMap) {
-        int size = inputMap.size();
-        int allocationSize = Math.max(1, size);
+        final int size = inputMap != null ? inputMap.size() : 0;
 
-        String[] itemNames = new String[allocationSize];
-        String[] itemDescs = new String[allocationSize];
-        OpenType[] itemTypes = new OpenType[allocationSize];
-        String[] itemValues = new String[allocationSize];
-
-        if (size <= 0) {
-            // CompositeData can not be empty; If the map is empty he have to send something
-            itemNames[0] = "null";
-            itemDescs[0] = "empty map";
-            itemValues[0] = "(null)";
-            itemTypes[0] = SimpleType.STRING;
-
-        } else {
-            int i = 0;
-
-            for (Object key : inputMap.keySet()) {
-                String keyValue = key.toString();
-                String value = String.valueOf(inputMap.get(key));
-
-                itemNames[i] = keyValue;
-                itemDescs[i] = keyValue;
-                itemValues[i] = value;
-                itemTypes[i] = SimpleType.STRING;
-                ++i;
-            }
+        if (size == 0) {
+            LOGGER.debug("Exposing empty map");
+            return null;
         }
 
+        final String[] itemNames = new String[size];
+        final String[] itemDescs = new String[size];
+        final OpenType[] itemTypes = new OpenType[size];
+        final Object[] itemValues = new Object[size];
+
+        int i = 0;
+
+        for (Object key : inputMap.keySet()) {
+            final String keyValue = key.toString();
+            final Object value = inputMap.get(key);
+
+            itemNames[i] = keyValue;
+            itemDescs[i] = keyValue;
+            itemValues[i] = value;
+            itemTypes[i] = getSimpleType(value);
+            ++i;
+        }
 
         try {
-            CompositeType compositeType = new CompositeType(name, "CompositeData wrapper-"+desc, itemNames, itemDescs, itemTypes);
-            CompositeDataSupport compositeData = new CompositeDataSupport(compositeType, itemNames, itemValues);
-            return compositeData;
-
+            final CompositeType compositeType = new CompositeType(name, "CompositeData wrapper-" + desc, itemNames, itemDescs, itemTypes);
+            return new CompositeDataSupport(compositeType, itemNames, itemValues);
         } catch (OpenDataException e) {
-            LOGGER.error("Unable to convert map to open type!");
+            LOGGER.warn("Unable to convert map to open type!");
+            return null;
         } catch (Exception e) {
-            LOGGER.error("Unknown problem found. Check with library authors.");
+            LOGGER.warn("Unknown problem while exposing the data", e);
+            return null;
         }
+    }
 
-        return inputMap;
+    private SimpleType<?> getSimpleType(final Object value) {
+        switch (value.getClass().getSimpleName().toLowerCase()) {
+            case "integer":
+                return SimpleType.INTEGER;
+            case "biginteger":
+                return SimpleType.BIGINTEGER;
+            case "long":
+                return SimpleType.LONG;
+            case "short":
+                return SimpleType.SHORT;
+            case "byte":
+                return SimpleType.BYTE;
+            case "date":
+                return SimpleType.DATE;
+            case "double":
+                return SimpleType.DOUBLE;
+            case "float":
+                return SimpleType.FLOAT;
+            case "boolean":
+                return SimpleType.BOOLEAN;
+
+            default:
+                LOGGER.debug("Unable to convert type of the value");
+            case "string":
+                return SimpleType.STRING;
+        }
     }
 }

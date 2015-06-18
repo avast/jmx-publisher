@@ -15,13 +15,16 @@ import java.util.Scanner;
 public class JmxMapTestApplication {
 
     @JMXProperty
+    public int number = 0;
+
+    @JMXProperty
     public Map<String, String> stringMap = new HashMap<>();
 
     @JMXProperty
     public Map<Integer, Integer> emptyMap = new HashMap<>();
 
     @JMXProperty
-    public Map<Integer, String> integerStringMap = new HashMap<>();
+    public Map<Integer, Integer> integerStringMap = new HashMap<>();
 
     @JMXPropertyGetter
     public Map getEmptyMap() {
@@ -41,14 +44,18 @@ public class JmxMapTestApplication {
 
         // emptyMap is empty map
 
-        integerStringMap.put(1, "int1");
-        integerStringMap.put(2, "int2");
-        integerStringMap.put(3, "int3");
+        integerStringMap.put(1, 123);
+        integerStringMap.put(2, 234);
+        integerStringMap.put(3, 345);
     }
 
 
     public static void main(String[] args) {
         JmxMapTestApplication test = new JmxMapTestApplication();
+        new Scanner(System.in).nextLine();
+        System.out.println("Added record to empty map");
+        test.emptyMap.put(123, 456);
+
         new Scanner(System.in).nextLine();
     }
 }
