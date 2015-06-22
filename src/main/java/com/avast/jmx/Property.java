@@ -166,10 +166,12 @@ public class Property {
     }
 
     private void openTypeConversionCheck(Field field) {
-        final Class<?> fieldType = field.getType();
-        if (fieldType.equals(Map.class)) {
-            compositeDataWrapper = true;
-            setable = false; // Really do not want to set CompositeData
+        if (field != null) { //the field can be null for properties backed by methods
+            final Class<?> fieldType = field.getType();
+            if (fieldType.equals(Map.class)) {
+                compositeDataWrapper = true;
+                setable = false; // Really do not want to set CompositeData
+            }
         }
     }
 
