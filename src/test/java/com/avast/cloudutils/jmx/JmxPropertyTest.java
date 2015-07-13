@@ -115,11 +115,9 @@ public class JmxPropertyTest extends TestCase {
 
 
         obj = connection.getAttribute(objectName, "emptyMap");
-        assertTrue(obj instanceof CompositeData);
-        compositeData = (CompositeData) obj;
-        assertTrue((compositeData.containsKey("null")));
+        assertTrue(obj == null);//shouldn't be exposed
 
-        obj = connection.getAttribute(objectName, "integerStringMap");
+        obj = connection.getAttribute(objectName, "integerMap");
         assertTrue(obj instanceof CompositeData);
         compositeData = (CompositeData) obj;
         assertTrue(compositeData.containsKey("1"));

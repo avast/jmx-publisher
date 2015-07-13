@@ -8,6 +8,9 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @author Jan Kolena - kolena@avast.com (originally: Tomas Rehak)
@@ -221,7 +224,7 @@ public class Property {
 
             itemNames[i] = keyValue;
             itemDescs[i] = keyValue;
-            itemValues[i] = value;
+            itemValues[i] = simplifyValue(value);
             itemTypes[i] = getSimpleType(value);
             ++i;
         }
@@ -230,7 +233,7 @@ public class Property {
             final CompositeType compositeType = new CompositeType(name, "CompositeData wrapper-" + desc, itemNames, itemDescs, itemTypes);
             return new CompositeDataSupport(compositeType, itemNames, itemValues);
         } catch (OpenDataException e) {
-            LOGGER.warn("Unable to convert map to open type!");
+            LOGGER.warn("Unable to convert map to open type!", e);
             return null;
         } catch (Exception e) {
             LOGGER.warn("Unknown problem while exposing the data", e);
@@ -238,13 +241,29 @@ public class Property {
         }
     }
 
+    private Object simplifyValue(final Object value) {
+        final Object newValue;
+
+        if (AtomicInteger.class.isInstance(value)) {
+            newValue = AtomicInteger.class.cast(value).get();
+        } else if (AtomicLong.class.isInstance(value)) {
+            newValue = AtomicLong.class.cast(value).get();
+        } else if (AtomicBoolean.class.isInstance(value)) {
+            newValue = AtomicBoolean.class.cast(value).get();
+        } else newValue = value;
+
+        return newValue;
+    }
+
     private SimpleType<?> getSimpleType(final Object value) {
         switch (value.getClass().getSimpleName().toLowerCase()) {
             case "integer":
+            case "atomicinteger":
                 return SimpleType.INTEGER;
             case "biginteger":
                 return SimpleType.BIGINTEGER;
             case "long":
+            case "atomiclong":
                 return SimpleType.LONG;
             case "short":
                 return SimpleType.SHORT;
@@ -257,6 +276,7 @@ public class Property {
             case "float":
                 return SimpleType.FLOAT;
             case "boolean":
+            case "atomicboolean":
                 return SimpleType.BOOLEAN;
 
             default:
