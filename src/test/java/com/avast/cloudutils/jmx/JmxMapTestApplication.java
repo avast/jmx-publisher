@@ -8,16 +8,11 @@ import com.avast.jmx.MyDynamicBean;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by barina on 08/06/15.
  */
 public class JmxMapTestApplication {
-
-    enum Key {
-        FIRST, SECOND, THIRD
-    }
 
     @JMXProperty
     public int number = 0;
@@ -29,13 +24,7 @@ public class JmxMapTestApplication {
     public Map<Integer, Integer> emptyMap = new HashMap<>();
 
     @JMXProperty
-    public Map<Integer, Integer> integerMap = new HashMap<>();
-
-    @JMXProperty
-    public Map<Integer, AtomicInteger> atomicIntegerMap = new HashMap<>();
-
-    @JMXProperty
-    public Map<Key, Integer> enumIntegerMap = new HashMap<>();
+    public Map<Integer, Integer> integerStringMap = new HashMap<>();
 
     @JMXPropertyGetter
     public Map getEmptyMap() {
@@ -55,17 +44,9 @@ public class JmxMapTestApplication {
 
         // emptyMap is empty map
 
-        integerMap.put(1, 123);
-        integerMap.put(2, 234);
-        integerMap.put(3, 345);
-
-        atomicIntegerMap.put(1, new AtomicInteger(1123));
-        atomicIntegerMap.put(2, new AtomicInteger(1234));
-        atomicIntegerMap.put(3, new AtomicInteger(1345));
-
-        enumIntegerMap.put(Key.FIRST, 123);
-        enumIntegerMap.put(Key.SECOND, 234);
-        enumIntegerMap.put(Key.THIRD, 345);
+        integerStringMap.put(1, 123);
+        integerStringMap.put(2, 234);
+        integerStringMap.put(3, 345);
     }
 
 
