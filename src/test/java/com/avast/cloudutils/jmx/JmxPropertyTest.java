@@ -4,8 +4,12 @@ import com.avast.client.jmx.JMXClientConnection;
 import junit.framework.TestCase;
 import org.junit.Test;
 
+import javax.management.MBeanServerConnection;
 import javax.management.ObjectName;
 import javax.management.openmbean.CompositeData;
+import javax.management.remote.JMXConnector;
+import javax.management.remote.JMXConnectorFactory;
+import javax.management.remote.JMXServiceURL;
 import java.io.IOException;
 import java.util.Random;
 
@@ -123,6 +127,73 @@ public class JmxPropertyTest extends TestCase {
         assertTrue(compositeData.containsKey("1"));
         assertTrue(compositeData.containsKey("2"));
         assertTrue(compositeData.containsKey("3"));
+
+    }
+
+
+    @Test
+    public void testMapsFieldInAnnotatedMethod() throws IOException {
+        JmxMapMethod testClass = new JmxMapMethod();
+        String beanName = "com.avast.cloudutils.jmx:type=" + testClass.getClass().getSimpleName();
+
+        JMXClientConnection connection;
+        try {
+            connection = new JMXClientConnection("localhost:9969");
+        } catch (IOException e) {
+            //ignore, test run with wrong parameters...
+            System.err.println("Cannot connect to the service, maybe wrong parameters?");
+            return;
+        }
+        ObjectName objectName = connection.getObjectName(beanName);
+
+
+        Object obj;
+        CompositeData compositeData;
+
+        obj = connection.getAttribute(objectName, "stringMap");
+        assertTrue(obj instanceof CompositeData);
+
+        compositeData = (CompositeData) obj;
+        assertTrue(compositeData.containsKey("str1"));
+        assertTrue(compositeData.containsKey("str2"));
+
+
+
+        obj = connection.getAttribute(objectName, "annotatedMethodMap");
+        assertTrue(obj instanceof CompositeData);
+        compositeData = (CompositeData) obj;
+        assertTrue(compositeData.containsKey("key1"));
+        assertTrue(compositeData.containsKey("key2"));
+
+    }
+
+
+    @Test
+    public void testAnnotationMethod() throws Exception {
+        JmxSubTestApplication testClass = new JmxSubTestApplication();
+        String beanName = "com.avast.cloudutils.jmx:type=" + testClass.getClass().getSimpleName();
+        String hostAndPort = "localhost:9969";
+
+        MBeanServerConnection conn;
+        JMXConnector connector = null;
+        JMXServiceURL url = new JMXServiceURL("service:jmx:rmi:///jndi/rmi://" + hostAndPort + "/jmxrmi");
+
+        try {
+            conn = (connector = JMXConnectorFactory.connect(url)).getMBeanServerConnection();
+        } catch (IOException var4) {
+            if(connector != null) {
+                connector.close();
+            }
+
+            System.err.println("Cannot connect to the service, maybe wrong parameters?");
+            return;
+        }
+
+        ObjectName objectName = (ObjectName)conn.queryNames(new ObjectName(beanName), null).toArray()[0];
+
+        assertEquals("hello", conn.getAttribute(objectName, "backedProperty"));
+
+        assertEquals(1, conn.getAttributes(objectName, new String[]{"backedProperty"}).size());
 
     }
 }

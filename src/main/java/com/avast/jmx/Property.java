@@ -44,7 +44,7 @@ public class Property {
         this.getterTarget = instance;
         this.setterTarget = instance;
         this.originalClass = originalClass;
-        openTypeConversionCheck(f);
+        openTypeConversionCheck(f, getter);
     }
 
     public void setType(String type) {
@@ -168,12 +168,19 @@ public class Property {
         return "Property{" + "field=" + field + ", name=" + name + ", desc=" + desc + ", readable=" + readable + ", setable=" + setable + ", getter=" + getter + ", setter=" + setter + ", instance=" + instance + ", setterTarget=" + setterTarget + ", getterTarget=" + getterTarget + ", type=" + type + '}';
     }
 
-    private void openTypeConversionCheck(Field field) {
+    private void openTypeConversionCheck(Field field, Method method) {
         if (field != null) { //the field can be null for properties backed by methods
             final Class<?> fieldType = field.getType();
             if (fieldType.equals(Map.class)) {
                 compositeDataWrapper = true;
                 setable = false; // Really do not want to set CompositeData
+            }
+        } else if (method != null) {
+            //for properties backed by methods
+            final Class<?> returnType = method.getReturnType();
+            if (returnType.equals(Map.class)) {
+                compositeDataWrapper = true;
+                setable = false;
             }
         }
     }
